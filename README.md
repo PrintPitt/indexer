@@ -1,30 +1,32 @@
 # PrintPitt · indexer (Envio, BLZ-20)
 
-Envio HyperIndex 3.14 untuk `FotokopiKilat` + `TestIDRX`. Keputusan: repo `PrintPitt/vault`, Decision Log D-16.
-Event live untuk game tetap lewat WebSocket langsung ke RPC. Indexer ini untuk snapshot saat FE dibuka,
-riwayat order, leaderboard omzet per sesi, profil pelanggan (NFT, refund), dan top-up tIDRX.
+Envio HyperIndex 3.14 for `FotokopiKilat` + `TestIDRX`. Decision: repo `PrintPitt/vault`, Decision Log D-16.
+Live game events still go over a WebSocket straight to the RPC. This indexer serves the snapshot when the FE opens,
+order history, the per-session revenue leaderboard, customer profiles (NFTs, refunds) and tIDRX top-ups.
 
-## Isi
+## Contents
 
-- `config.yaml`: Monad testnet 10143 lewat HyperSync, anvil 31337 lewat RPC.
-- `schema.graphql`: Order, Toko, Sesi, OmzetSesi, Pelanggan, TopUp, Katalog, Statistik.
-- `src/handlers/`: satu file per contract.
-- `abis/`: ditulis oleh `script/export.mjs` di repo `PrintPitt/contracts` (clone di sebelah repo ini). Jangan diedit manual.
+- `config.yaml`: Monad testnet 10143 via HyperSync, anvil 31337 via RPC.
+- `schema.graphql`: Order, Toko (shop), Sesi (session), OmzetSesi (revenue per session), Pelanggan (customer), TopUp, Katalog (catalog), Statistik (stats).
+- `src/handlers/`: one file per contract.
+- `abis/`: written by `script/export.mjs` in the `PrintPitt/contracts` repo (cloned next to this one). Do not edit by hand.
 
-## Perintah
+Entity and field names are in Indonesian and are kept as-is because the frontend queries them.
+
+## Commands
 
 ```bash
 npm install
-npm run codegen     # wajib setelah clone (tipe .envio/types.d.ts tidak di-commit)     # setelah config.yaml / schema.graphql berubah
+npm run codegen     # required after cloning (.envio/types.d.ts is not committed) and after config.yaml / schema.graphql change
 npm run typecheck
-npm test            # event simulasi, tanpa Docker dan tanpa jaringan
-npm run dev         # indexer lokal + GraphQL di http://localhost:8080, BUTUH Docker (OrbStack)
+npm test            # simulated events, no Docker and no network
+npm run dev         # local indexer + GraphQL at http://localhost:8080, NEEDS Docker (OrbStack)
 ```
 
-`npm run dev` mengindeks kedua chain. Untuk testnet isi `.env` dari `.env.example`
-(`ENVIO_API_TOKEN`, `ENVIO_FK_ADDRESS`, `ENVIO_TIDRX_ADDRESS`, `ENVIO_START_BLOCK`) setelah deploy BLZ-07.
+`npm run dev` indexes both chains. For testnet, fill `.env` from `.env.example`
+(`ENVIO_API_TOKEN`, `ENVIO_FK_ADDRESS`, `ENVIO_TIDRX_ADDRESS`, `ENVIO_START_BLOCK`) after the BLZ-07 deploy.
 
-## Contoh query FE
+## Example FE query
 
 ```graphql
 query Papan($sesi: String!) {

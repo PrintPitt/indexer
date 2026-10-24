@@ -1,12 +1,12 @@
 # yaml-language-server: $schema=./node_modules/envio/evm.schema.json
-# Indexer FotokopiKilat (BLZ-20, D-16). Event live untuk game tetap lewat WebSocket langsung ke RPC;
-# indexer ini untuk snapshot saat FE dibuka, riwayat order, leaderboard omzet per sesi, dan top-up tIDRX.
-# ABI di ./abis ditulis oleh script/export.mjs di repo PrintPitt/contracts.
+# FotokopiKilat indexer (BLZ-20, D-16). Live game events still go over a WebSocket straight to the RPC;
+# this indexer serves the snapshot when the FE opens, order history, the per-session revenue leaderboard and tIDRX top-ups.
+# ABIs in ./abis are written by script/export.mjs in the PrintPitt/contracts repo.
 name: fotokopi-kilat
-description: Order, toko, sesi, pelanggan, dan top-up tIDRX
-# Entitas per chain: id sama di 10143 dan 31337 adalah dua baris berbeda.
+description: Orders, shops, sessions, customers and tIDRX top-ups
+# Per-chain entities: the same id on 10143 and 31337 is two different rows.
 disable_default_cross_chain: true
-# block.number dan block.timestamp selalu ada; hash tx dipakai untuk link explorer.
+# block.number and block.timestamp are always present; the tx hash is used for explorer links.
 field_selection:
   transaction_fields: [hash]
 contracts:
@@ -38,8 +38,8 @@ contracts:
     events:
       - event: Transfer
 chains:
-  # Monad testnet lewat HyperSync (https://10143.hypersync.xyz), butuh ENVIO_API_TOKEN.
-  # Default = deploy 2026-10-24 (deployments/10143.json di repo contracts); env ENVIO_* menimpa.
+  # Monad testnet via HyperSync (https://10143.hypersync.xyz), needs ENVIO_API_TOKEN.
+  # Default = the 2026-10-24 deploy (deployments/10143.json in the contracts repo); ENVIO_* env vars override it.
   - id: 10143
     start_block: ${ENVIO_START_BLOCK:-73752547}
     contracts:
@@ -47,7 +47,7 @@ chains:
         address: "${ENVIO_FK_ADDRESS:-0x24b045E3B4155232F81c709dF3DD43595a5C5101}"
       - name: TestIDRX
         address: "${ENVIO_TIDRX_ADDRESS:-0xcCf26C3b02a610fB87327f41a13384aF8ff57F45}"
-  # Anvil lokal: alamat deterministik dari test/uji-anvil.sh di repo backend (deployer kunci #0, nonce 0 dan 1).
+  # Local anvil: deterministic addresses from test/uji-anvil.sh in the backend repo (deployer key #0, nonces 0 and 1).
   - id: 31337
     start_block: 0
     rpc:

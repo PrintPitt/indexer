@@ -1,5 +1,5 @@
-// Handler event FotokopiKilat. Aturan meniru contract: contract tetap sumber kebenaran,
-// indexer hanya merangkum (snapshot, riwayat, leaderboard omzet per sesi).
+// FotokopiKilat event handlers. Rules mirror the contract: the contract stays the source of truth,
+// the indexer only summarises (snapshot, history, per-session revenue leaderboard).
 import { indexer, type EvmOnEventContext, type Order, type Pelanggan, type Statistik } from "envio";
 
 const NOL = 0n;
@@ -18,7 +18,7 @@ const pelanggan = (context: Ctx, id: string): Promise<Pelanggan> =>
 
 async function order(context: Ctx, id: bigint): Promise<Order | undefined> {
   const o = await context.Order.get(id.toString());
-  if (!o) context.log.warn(`Order #${id} belum terindeks (start_block terlalu tinggi?)`);
+  if (!o) context.log.warn(`Order #${id} not indexed yet (start_block too high?)`);
   return o;
 }
 
@@ -35,7 +35,7 @@ indexer.onEvent({ contract: "FotokopiKilat", event: "ShopRegistered" }, async ({
   context.Toko.set({ id: event.params.toko, nama: event.params.nama, aktif: true, diclaim: 0, selesai: 0, gagal: 0, sengketa: 0, totalPayout: NOL, proSampai: undefined });
 });
 
-// v2.3: toko mendaftar sendiri (ShopRegistered di atas), ganti nama, dan bisa dinonaktifkan operator.
+// v2.3: shops self-register (ShopRegistered above), can rename, and can be disabled by the operator.
 indexer.onEvent({ contract: "FotokopiKilat", event: "ShopRenamed" }, async ({ event, context }) => {
   const t = await context.Toko.get(event.params.toko);
   if (t) context.Toko.set({ ...t, nama: event.params.nama });
@@ -65,14 +65,14 @@ indexer.onEvent({ contract: "FotokopiKilat", event: "FeeRelaySet" }, async ({ ev
 indexer.onEvent({ contract: "FotokopiKilat", event: "OrderCreated" }, async ({ event, context }) => {
   const p = event.params;
   const st = await statistik(context);
-  // Order selalu dibuat saat sesi aktif (contract menolak bila tidak), jadi sesi = sesi aktif terakhir.
+  // Orders are always created during an active session (the contract rejects them otherwise), so session = the last active session.
   const sesiId = String(st.sesiAktif);
   const [k, pl, s] = await Promise.all([
     context.Katalog.get(p.jenis.toString()), pelanggan(context, p.pelanggan), context.Sesi.get(sesiId),
   ]);
   context.Order.set({
     id: p.id.toString(), pelanggan_id: p.pelanggan, jenis: Number(p.jenis), label: k?.label ?? "", harga: p.harga,
-    halaman: 1, batasKerja: 0, dokumen: undefined, pakaiKode: false, // diisi OrderDetail (tx yang sama)
+    halaman: 1, batasKerja: 0, dokumen: undefined, pakaiKode: false, // filled in by OrderDetail (same tx)
     teks: p.teks, status: "Open", sesi_id: sesiId, toko_id: undefined, langkahSelesai: 0, dibuatPada: p.dibuatPada,
     diclaimPada: undefined, siapPada: undefined, selesaiPada: undefined, payoutTerkunci: undefined, diserahkan: undefined,
     kerja: undefined, payout: undefined, feePlatform: undefined, refund: undefined, diputuskanOtomatis: undefined,
@@ -83,7 +83,7 @@ indexer.onEvent({ contract: "FotokopiKilat", event: "OrderCreated" }, async ({ e
   context.Statistik.set({ ...st, order: st.order + 1, volume: st.volume + p.harga });
 });
 
-// v2: rincian halaman, batas kerja, hash dokumen, dan kode serah terima; dipancarkan tepat setelah OrderCreated.
+// v2: page count, work deadline, document hash and handover code; emitted right after OrderCreated.
 indexer.onEvent({ contract: "FotokopiKilat", event: "OrderDetail" }, async ({ event, context }) => {
   const p = event.params;
   const o = await order(context, p.id);
@@ -94,7 +94,7 @@ indexer.onEvent({ contract: "FotokopiKilat", event: "OrderDetail" }, async ({ ev
   });
 });
 
-// Dipancarkan di tx yang sama, setelah OrderCreated.
+// Emitted in the same tx, after OrderCreated.
 indexer.onEvent({ contract: "FotokopiKilat", event: "OrderRelayed" }, async ({ event, context }) => {
   const p = event.params;
   const o = await order(context, p.id);
@@ -120,7 +120,7 @@ indexer.onEvent({ contract: "FotokopiKilat", event: "StepCompleted" }, async ({ 
   if (o) context.Order.set({ ...o, langkahSelesai: Number(event.params.urutan) });
 });
 
-// v2: langkah terakhir order berkode → Siap; payout terkunci, toko sudah bebas, menunggu serah terima QR.
+// v2: last step of a coded order → Siap; payout locked, the shop is free again, waiting for the QR handover.
 indexer.onEvent({ contract: "FotokopiKilat", event: "OrderReady" }, async ({ event, context }) => {
   const p = event.params;
   const o = await order(context, p.id);
@@ -157,7 +157,7 @@ indexer.onEvent({ contract: "FotokopiKilat", event: "OrderExpired" }, async ({ e
   const [pl, st] = await Promise.all([pelanggan(context, o.pelanggan_id), statistik(context)]);
   context.Pelanggan.set({ ...pl, totalRefund: pl.totalRefund + p.refund });
   context.Statistik.set({ ...st, expired: st.expired + 1, refund: st.refund + p.refund });
-  // Toko yang claim lalu lewat batas kerja dihitung gagal.
+  // A shop that claimed and then missed the work deadline counts as failed.
   if (alasan === "Kerja" && o.toko_id) {
     const t = await context.Toko.get(o.toko_id);
     if (t) context.Toko.set({ ...t, gagal: t.gagal + 1 });
@@ -176,7 +176,7 @@ indexer.onEvent({ contract: "FotokopiKilat", event: "OrderDisputed" }, async ({ 
   }
 });
 
-// Operator membagi payout terkunci; order sengketa tidak mendapat NFT.
+// The operator splits the locked payout; disputed orders get no NFT.
 indexer.onEvent({ contract: "FotokopiKilat", event: "DisputeResolved" }, async ({ event, context }) => {
   const p = event.params;
   const o = await order(context, p.id);
@@ -200,7 +200,7 @@ indexer.onEvent({ contract: "FotokopiKilat", event: "PlatformSet" }, async ({ ev
   context.Statistik.set({ ...(await statistik(context)), platformFeeBps: Number(event.params.feeBps) });
 });
 
-// Dipancarkan setelah OrderFinished / DisputeResolved di tx yang sama.
+// Emitted after OrderFinished / DisputeResolved in the same tx.
 indexer.onEvent({ contract: "FotokopiKilat", event: "PlatformFeeTaken" }, async ({ event, context }) => {
   const p = event.params;
   const o = await order(context, p.id);

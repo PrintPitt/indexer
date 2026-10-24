@@ -1,4 +1,4 @@
-# Entitas indexer FotokopiKilat. Nominal token dalam satuan terkecil tIDRX (2 desimal: Rp1 = 100).
+# FotokopiKilat indexer entities. Token amounts are in the smallest tIDRX unit (2 decimals: Rp1 = 100).
 
 enum StatusOrder {
   Open
@@ -23,9 +23,9 @@ type Order {
   harga: BigInt!
   halaman: Int!
   batasKerja: Int!
-  "Hash dokumen terenkripsi (kosong = mode demo tanpa dokumen)"
+  "Encrypted document hash (empty = demo mode without a document)"
   dokumen: String
-  "Order butuh serah terima QR (kodeHash != 0)"
+  "Order requires a QR handover (kodeHash != 0)"
   pakaiKode: Boolean!
   teks: String!
   status: StatusOrder! @index
@@ -36,17 +36,17 @@ type Order {
   diclaimPada: BigInt
   siapPada: BigInt
   selesaiPada: BigInt
-  "Payout yang terkunci saat Siap"
+  "Payout locked when the order became Siap (ready)"
   payoutTerkunci: BigInt
-  "true = diserahkan lewat QR / tanpa kode; false = ditutup setelah batas jemput"
+  "true = handed over via QR / without a code; false = closed after the pickup deadline"
   diserahkan: Boolean
   kerja: Int
-  "Payout bersih ke toko (setelah fee platform)"
+  "Net payout to the shop (after the platform fee)"
   payout: BigInt
   feePlatform: BigInt
   refund: BigInt
   alasanExpire: AlasanExpire
-  "Sengketa ditutup otomatis (50/50) karena operator tidak memutuskan sampai batas waktu"
+  "Dispute closed automatically (50/50) because the operator did not decide before the deadline"
   diputuskanOtomatis: Boolean
   viaRelayer: Boolean!
   relayer: String
@@ -57,7 +57,7 @@ type Order {
 type Toko {
   id: ID!
   nama: String!
-  "false bila dinonaktifkan operator (tidak bisa claim)"
+  "false if disabled by the operator (cannot claim)"
   aktif: Boolean!
   orders: [Order!]! @derivedFrom(field: "toko")
   diclaim: Int!
@@ -65,7 +65,7 @@ type Toko {
   gagal: Int!
   sengketa: Int!
   totalPayout: BigInt!
-  "Toko Pro aktif sampai (detik); null = belum pernah langganan"
+  "Toko Pro active until (seconds); null = never subscribed"
   proSampai: BigInt
 }
 
@@ -81,7 +81,7 @@ type Sesi {
   volume: BigInt!
 }
 
-# Leaderboard: omzet satu toko dalam satu sesi (sama dengan mapping `omzet` di contract). id = "<sesi>-<toko>".
+# Leaderboard: one shop's revenue in one session (same as the contract's `omzet` mapping). id = "<sesi>-<toko>".
 type OmzetSesi {
   id: ID!
   sesi: Sesi!
@@ -100,7 +100,7 @@ type Pelanggan {
   totalTopUp: BigInt!
 }
 
-# Mint tIDRX (Transfer dari alamat nol) = top-up yang sudah masuk.
+# tIDRX mint (Transfer from the zero address) = a completed top-up.
 type TopUp {
   id: ID!
   ke: String! @index
@@ -119,7 +119,7 @@ type Katalog {
   label: String!
 }
 
-# Satu baris per chain, id "global".
+# One row per chain, id "global".
 type Statistik {
   id: ID!
   sesiAktif: Int!

@@ -1,4 +1,4 @@
-// Mint tIDRX (Transfer dari alamat nol) = top-up yang sudah dicetak backend setelah pembayaran (simulasi IDRX).
+// tIDRX mint (Transfer from the zero address) = a top-up minted by the backend after payment (simulated IDRX).
 import { indexer } from "envio";
 
 const ALAMAT_NOL = "0x0000000000000000000000000000000000000000";
