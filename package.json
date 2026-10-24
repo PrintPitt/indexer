@@ -1,0 +1,25 @@
+{
+  "name": "fotokopi-kilat-indexer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Indexer Envio HyperIndex untuk FotokopiKilat + tIDRX (BLZ-20)",
+  "scripts": {
+    "codegen": "envio codegen",
+    "dev": "envio dev",
+    "start": "envio start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --test-timeout=20000"
+  },
+  "devDependencies": {
+    "@types/node": "24.12.2",
+    "typescript": "6.0.3",
+    "vitest": "4.1.0"
+  },
+  "dependencies": {
+    "envio": "3.14.0"
+  },
+  "engines": {
+    "node": ">=22.15.0"
+  }
+}

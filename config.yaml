@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=./node_modules/envio/evm.schema.json
+# Indexer FotokopiKilat (BLZ-20, D-16). Event live untuk game tetap lewat WebSocket langsung ke RPC;
+# indexer ini untuk snapshot saat FE dibuka, riwayat order, leaderboard omzet per sesi, dan top-up tIDRX.
+# ABI di ./abis ditulis oleh script/export.mjs di repo PrintPitt/contracts.
+name: fotokopi-kilat
+description: Order, toko, sesi, pelanggan, dan top-up tIDRX
+# Entitas per chain: id sama di 10143 dan 31337 adalah dua baris berbeda.
+disable_default_cross_chain: true
+# block.number dan block.timestamp selalu ada; hash tx dipakai untuk link explorer.
+field_selection:
+  transaction_fields: [hash]
+contracts:
+  - name: FotokopiKilat
+    abi_file_path: ./abis/FotokopiKilat.json
+    events:
+      - event: KatalogSet
+      - event: ShopRegistered
+      - event: SessionStarted
+      - event: SessionEnded
+      - event: FeeRelaySet
+      - event: OrderCreated
+      - event: OrderRelayed
+      - event: OrderClaimed
+      - event: StepCompleted
+      - event: OrderFinished
+      - event: OrderExpired
+  - name: TestIDRX
+    abi_file_path: ./abis/TestIDRX.json
+    events:
+      - event: Transfer
+chains:
+  # Monad testnet lewat HyperSync (https://10143.hypersync.xyz), butuh ENVIO_API_TOKEN.
+  - id: 10143
+    start_block: ${ENVIO_START_BLOCK:-0}
+    contracts:
+      - name: FotokopiKilat
+        address: "${ENVIO_FK_ADDRESS:-0x0000000000000000000000000000000000000001}"
+      - name: TestIDRX
+        address: "${ENVIO_TIDRX_ADDRESS:-0x0000000000000000000000000000000000000002}"
+  # Anvil lokal: alamat deterministik dari test/uji-anvil.sh di repo backend (deployer kunci #0, nonce 0 dan 1).
+  - id: 31337
+    start_block: 0
+    rpc:
+      - url: ${ENVIO_ANVIL_RPC:-http://127.0.0.1:8545}
+        for: sync
+    contracts:
+      - name: FotokopiKilat
+        address: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
+      - name: TestIDRX
+        address: "0x5FbDB2315678afecb367f032d93F642f64180aa3"

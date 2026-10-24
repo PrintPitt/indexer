@@ -1,0 +1,110 @@
+# Entitas indexer FotokopiKilat. Nominal token dalam satuan terkecil tIDRX (2 desimal: Rp1 = 100).
+
+enum StatusOrder {
+  Open
+  Claimed
+  Finished
+  Expired
+}
+
+enum AlasanExpire {
+  Antre
+  Kerja
+}
+
+type Order {
+  id: ID!
+  pelanggan: Pelanggan!
+  jenis: Int!
+  label: String!
+  harga: BigInt!
+  teks: String!
+  status: StatusOrder! @index
+  sesi: Sesi!
+  toko: Toko
+  langkahSelesai: Int!
+  dibuatPada: BigInt! @index
+  diclaimPada: BigInt
+  selesaiPada: BigInt
+  kerja: Int
+  payout: BigInt
+  refund: BigInt
+  alasanExpire: AlasanExpire
+  viaRelayer: Boolean!
+  relayer: String
+  feeRelay: BigInt
+  txBuat: String!
+}
+
+type Toko {
+  id: ID!
+  nama: String!
+  orders: [Order!]! @derivedFrom(field: "toko")
+  diclaim: Int!
+  selesai: Int!
+  gagal: Int!
+  totalPayout: BigInt!
+}
+
+type Sesi {
+  id: ID!
+  nomor: Int!
+  aktif: Boolean!
+  mulai: BigInt!
+  berakhir: BigInt
+  orders: [Order!]! @derivedFrom(field: "sesi")
+  omzet: [OmzetSesi!]! @derivedFrom(field: "sesi")
+  jumlahOrder: Int!
+  volume: BigInt!
+}
+
+# Leaderboard: omzet satu toko dalam satu sesi (sama dengan mapping `omzet` di contract). id = "<sesi>-<toko>".
+type OmzetSesi {
+  id: ID!
+  sesi: Sesi!
+  toko: Toko!
+  omzet: BigInt! @index
+  selesai: Int!
+}
+
+type Pelanggan {
+  id: ID!
+  orders: [Order!]! @derivedFrom(field: "pelanggan")
+  jumlahOrder: Int!
+  totalBayar: BigInt!
+  totalRefund: BigInt!
+  nft: Int!
+  totalTopUp: BigInt!
+}
+
+# Mint tIDRX (Transfer dari alamat nol) = top-up yang sudah masuk.
+type TopUp {
+  id: ID!
+  ke: String! @index
+  jumlah: BigInt!
+  waktu: BigInt!
+  tx: String!
+}
+
+type Katalog {
+  id: ID!
+  harga: BigInt!
+  batasKerja: Int!
+  jumlahLangkah: Int!
+  label: String!
+}
+
+# Satu baris per chain, id "global".
+type Statistik {
+  id: ID!
+  sesiAktif: Int!
+  feeRelay: BigInt!
+  order: Int!
+  selesai: Int!
+  expired: Int!
+  relayed: Int!
+  volume: BigInt!
+  payout: BigInt!
+  refund: BigInt!
+  topUp: BigInt!
+}
