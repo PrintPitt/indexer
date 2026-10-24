@@ -64,7 +64,7 @@ indexer.onEvent({ contract: "FotokopiKilat", event: "OrderCreated" }, async ({ e
     halaman: 1, batasKerja: 0, dokumen: undefined, pakaiKode: false, // diisi OrderDetail (tx yang sama)
     teks: p.teks, status: "Open", sesi_id: sesiId, toko_id: undefined, langkahSelesai: 0, dibuatPada: p.dibuatPada,
     diclaimPada: undefined, siapPada: undefined, selesaiPada: undefined, payoutTerkunci: undefined, diserahkan: undefined,
-    kerja: undefined, payout: undefined, feePlatform: undefined, refund: undefined,
+    kerja: undefined, payout: undefined, feePlatform: undefined, refund: undefined, diputuskanOtomatis: undefined,
     alasanExpire: undefined, viaRelayer: false, relayer: undefined, feeRelay: undefined, txBuat: event.transaction.hash,
   });
   context.Pelanggan.set({ ...pl, jumlahOrder: pl.jumlahOrder + 1, totalBayar: pl.totalBayar + p.harga });
@@ -170,7 +170,7 @@ indexer.onEvent({ contract: "FotokopiKilat", event: "DisputeResolved" }, async (
   const p = event.params;
   const o = await order(context, p.id);
   if (!o) return;
-  context.Order.set({ ...o, status: "Diputuskan", selesaiPada: BigInt(event.block.timestamp), payout: p.payout, refund: p.refund });
+  context.Order.set({ ...o, status: "Diputuskan", selesaiPada: BigInt(event.block.timestamp), payout: p.payout, refund: p.refund, diputuskanOtomatis: p.otomatis });
   const [t, om, pl, st] = await Promise.all([
     context.Toko.get(p.toko),
     context.OmzetSesi.getOrCreate({ id: `${o.sesi_id}-${p.toko}`, sesi_id: o.sesi_id, toko_id: p.toko, omzet: NOL, selesai: 0 }),

@@ -23,12 +23,30 @@
         "internalType": "uint32"
       },
       {
+        "name": "batasSengketa_",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
         "name": "token_",
         "type": "address",
         "internalType": "contract IERC20"
       }
     ],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "BAGIAN_DEFAULT_SENGKETA",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -213,6 +231,19 @@
   {
     "type": "function",
     "name": "batasJemput",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "batasSengketa",
     "inputs": [],
     "outputs": [
       {
@@ -1372,6 +1403,19 @@
     "stateMutability": "view"
   },
   {
+    "type": "function",
+    "name": "tutupSengketa",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
     "type": "event",
     "name": "Approval",
     "inputs": [
@@ -1448,6 +1492,12 @@
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
+      },
+      {
+        "name": "otomatis",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
       }
     ],
     "anonymous": false

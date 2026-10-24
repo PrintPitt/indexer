@@ -39,12 +39,12 @@ chains:
   # Monad testnet lewat HyperSync (https://10143.hypersync.xyz), butuh ENVIO_API_TOKEN.
   # Default = deploy 2026-10-24 (deployments/10143.json di repo contracts); env ENVIO_* menimpa.
   - id: 10143
-    start_block: ${ENVIO_START_BLOCK:-73738764}
+    start_block: ${ENVIO_START_BLOCK:-73741333}
     contracts:
       - name: FotokopiKilat
-        address: "${ENVIO_FK_ADDRESS:-0x7aa3616045f98AE7CFEfD495aFEDbfCDE38B3181}"
+        address: "${ENVIO_FK_ADDRESS:-0x08b700EEcbabcfFBe53c0dAbe4C2acF9aF4dc959}"
       - name: TestIDRX
-        address: "${ENVIO_TIDRX_ADDRESS:-0xa5A96e268D6d75473B7b15c4BAFCDDCDC8223589}"
+        address: "${ENVIO_TIDRX_ADDRESS:-0x6F11E9dd404AF78522DAb5104fF0b6153c7E4841}"
   # Anvil lokal: alamat deterministik dari test/uji-anvil.sh di repo backend (deployer kunci #0, nonce 0 dan 1).
   - id: 31337
     start_block: 0

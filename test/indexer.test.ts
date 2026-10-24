@@ -119,7 +119,7 @@ describe("FotokopiKilat indexer", () => {
             ev(82, { contract: "FotokopiKilat", event: "OrderClaimed", params: { id: 2n, toko: TOKO_A, diclaimPada: t0 + 82n } }),
             ev(90, { contract: "FotokopiKilat", event: "OrderReady", params: { id: 2n, toko: TOKO_A, kerja: 8n, payout: 1_384n * RP, siapPada: t0 + 90n } }),
             ev(95, { contract: "FotokopiKilat", event: "OrderDisputed", params: { id: 2n } }),
-            ev(120, { contract: "FotokopiKilat", event: "DisputeResolved", params: { id: 2n, toko: TOKO_A, payout: 692n * RP, refund: 1_308n * RP } }),
+            ev(120, { contract: "FotokopiKilat", event: "DisputeResolved", params: { id: 2n, toko: TOKO_A, payout: 692n * RP, refund: 1_308n * RP, otomatis: true } }),
           ],
         },
       },
@@ -129,7 +129,7 @@ describe("FotokopiKilat indexer", () => {
       status: "Finished", halaman: 6, batasKerja: 38, dokumen: DOK, pakaiKode: true, siapPada: t0 + 9n,
       payoutTerkunci: 347_300n, payout: 347_300n, diserahkan: true, kerja: 5,
     });
-    t.expect(await ix.Order.getOrThrow("2")).toMatchObject({ status: "Diputuskan", dokumen: undefined, pakaiKode: true, payout: 69_200n, refund: 130_800n });
+    t.expect(await ix.Order.getOrThrow("2")).toMatchObject({ status: "Diputuskan", dokumen: undefined, pakaiKode: true, payout: 69_200n, refund: 130_800n, diputuskanOtomatis: true });
     t.expect(await ix.Toko.getOrThrow(TOKO_A)).toMatchObject({ selesai: 1, sengketa: 1, totalPayout: 347_300n + 69_200n });
     t.expect(await ix.OmzetSesi.getOrThrow(`1-${TOKO_A}`)).toMatchObject({ omzet: 347_300n + 69_200n, selesai: 1 });
     t.expect(await ix.Pelanggan.getOrThrow(PENONTON)).toMatchObject({ nft: 1, totalRefund: 52_700n + 130_800n });

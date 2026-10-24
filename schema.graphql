@@ -46,6 +46,8 @@ type Order {
   feePlatform: BigInt
   refund: BigInt
   alasanExpire: AlasanExpire
+  "Sengketa ditutup otomatis (50/50) karena operator tidak memutuskan sampai batas waktu"
+  diputuskanOtomatis: Boolean
   viaRelayer: Boolean!
   relayer: String
   feeRelay: BigInt
