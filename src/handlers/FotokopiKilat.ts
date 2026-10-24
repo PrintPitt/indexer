@@ -9,7 +9,7 @@ type Ctx = EvmOnEventContext;
 
 const statistik = (context: Ctx): Promise<Statistik> =>
   context.Statistik.getOrCreate({
-    id: "global", sesiAktif: 0, feeRelay: NOL, order: 0, selesai: 0, expired: 0, relayed: 0,
+    id: "global", sesiAktif: 0, feeRelay: NOL, order: 0, selesai: 0, expired: 0, sengketa: 0, relayed: 0,
     volume: NOL, payout: NOL, refund: NOL, topUp: NOL,
   });
 
@@ -25,13 +25,14 @@ async function order(context: Ctx, id: bigint): Promise<Order | undefined> {
 indexer.onEvent({ contract: "FotokopiKilat", event: "KatalogSet" }, async ({ event, context }) => {
   const p = event.params;
   context.Katalog.set({
-    id: p.jenis.toString(), harga: p.harga, batasKerja: Number(p.batasKerja),
+    id: p.jenis.toString(), hargaDasar: p.hargaDasar, hargaPerHalaman: p.hargaPerHalaman,
+    batasDasar: Number(p.batasDasar), batasPerHalaman: Number(p.batasPerHalaman),
     jumlahLangkah: Number(p.jumlahLangkah), label: p.label,
   });
 });
 
 indexer.onEvent({ contract: "FotokopiKilat", event: "ShopRegistered" }, async ({ event, context }) => {
-  context.Toko.set({ id: event.params.toko, nama: event.params.nama, diclaim: 0, selesai: 0, gagal: 0, totalPayout: NOL });
+  context.Toko.set({ id: event.params.toko, nama: event.params.nama, diclaim: 0, selesai: 0, gagal: 0, sengketa: 0, totalPayout: NOL });
 });
 
 indexer.onEvent({ contract: "FotokopiKilat", event: "SessionStarted" }, async ({ event, context }) => {
@@ -60,13 +61,26 @@ indexer.onEvent({ contract: "FotokopiKilat", event: "OrderCreated" }, async ({ e
   ]);
   context.Order.set({
     id: p.id.toString(), pelanggan_id: p.pelanggan, jenis: Number(p.jenis), label: k?.label ?? "", harga: p.harga,
+    halaman: 1, batasKerja: 0, dokumen: undefined, pakaiKode: false, // diisi OrderDetail (tx yang sama)
     teks: p.teks, status: "Open", sesi_id: sesiId, toko_id: undefined, langkahSelesai: 0, dibuatPada: p.dibuatPada,
-    diclaimPada: undefined, selesaiPada: undefined, kerja: undefined, payout: undefined, refund: undefined,
+    diclaimPada: undefined, siapPada: undefined, selesaiPada: undefined, payoutTerkunci: undefined, diserahkan: undefined,
+    kerja: undefined, payout: undefined, refund: undefined,
     alasanExpire: undefined, viaRelayer: false, relayer: undefined, feeRelay: undefined, txBuat: event.transaction.hash,
   });
   context.Pelanggan.set({ ...pl, jumlahOrder: pl.jumlahOrder + 1, totalBayar: pl.totalBayar + p.harga });
   if (s) context.Sesi.set({ ...s, jumlahOrder: s.jumlahOrder + 1, volume: s.volume + p.harga });
   context.Statistik.set({ ...st, order: st.order + 1, volume: st.volume + p.harga });
+});
+
+// v2: rincian halaman, batas kerja, hash dokumen, dan kode serah terima; dipancarkan tepat setelah OrderCreated.
+indexer.onEvent({ contract: "FotokopiKilat", event: "OrderDetail" }, async ({ event, context }) => {
+  const p = event.params;
+  const o = await order(context, p.id);
+  if (!o) return;
+  context.Order.set({
+    ...o, halaman: Number(p.halaman), batasKerja: Number(p.batasKerja),
+    dokumen: BigInt(p.dokumen) === NOL ? undefined : p.dokumen, pakaiKode: BigInt(p.kodeHash) !== NOL,
+  });
 });
 
 // Dipancarkan di tx yang sama, setelah OrderCreated.
@@ -95,13 +109,20 @@ indexer.onEvent({ contract: "FotokopiKilat", event: "StepCompleted" }, async ({ 
   if (o) context.Order.set({ ...o, langkahSelesai: Number(event.params.urutan) });
 });
 
+// v2: langkah terakhir order berkode → Siap; payout terkunci, toko sudah bebas, menunggu serah terima QR.
+indexer.onEvent({ contract: "FotokopiKilat", event: "OrderReady" }, async ({ event, context }) => {
+  const p = event.params;
+  const o = await order(context, p.id);
+  if (o) context.Order.set({ ...o, status: "Siap", siapPada: p.siapPada, kerja: Number(p.kerja), payoutTerkunci: p.payout });
+});
+
 indexer.onEvent({ contract: "FotokopiKilat", event: "OrderFinished" }, async ({ event, context }) => {
   const p = event.params;
   const o = await order(context, p.id);
   if (!o) return;
   context.Order.set({
     ...o, status: "Finished", selesaiPada: BigInt(event.block.timestamp), kerja: Number(p.kerja),
-    payout: p.payout, refund: p.refund,
+    payout: p.payout, refund: p.refund, diserahkan: p.diserahkan,
   });
   const idOmzet = `${o.sesi_id}-${p.toko}`;
   const [t, om, pl, st] = await Promise.all([
@@ -130,4 +151,34 @@ indexer.onEvent({ contract: "FotokopiKilat", event: "OrderExpired" }, async ({ e
     const t = await context.Toko.get(o.toko_id);
     if (t) context.Toko.set({ ...t, gagal: t.gagal + 1 });
   }
+});
+
+indexer.onEvent({ contract: "FotokopiKilat", event: "OrderDisputed" }, async ({ event, context }) => {
+  const o = await order(context, event.params.id);
+  if (!o) return;
+  context.Order.set({ ...o, status: "Sengketa" });
+  const st = await statistik(context);
+  context.Statistik.set({ ...st, sengketa: st.sengketa + 1 });
+  if (o.toko_id) {
+    const t = await context.Toko.get(o.toko_id);
+    if (t) context.Toko.set({ ...t, sengketa: t.sengketa + 1 });
+  }
+});
+
+// Operator membagi payout terkunci; order sengketa tidak mendapat NFT.
+indexer.onEvent({ contract: "FotokopiKilat", event: "DisputeResolved" }, async ({ event, context }) => {
+  const p = event.params;
+  const o = await order(context, p.id);
+  if (!o) return;
+  context.Order.set({ ...o, status: "Diputuskan", selesaiPada: BigInt(event.block.timestamp), payout: p.payout, refund: p.refund });
+  const [t, om, pl, st] = await Promise.all([
+    context.Toko.get(p.toko),
+    context.OmzetSesi.getOrCreate({ id: `${o.sesi_id}-${p.toko}`, sesi_id: o.sesi_id, toko_id: p.toko, omzet: NOL, selesai: 0 }),
+    pelanggan(context, o.pelanggan_id),
+    statistik(context),
+  ]);
+  if (t) context.Toko.set({ ...t, totalPayout: t.totalPayout + p.payout });
+  context.OmzetSesi.set({ ...om, omzet: om.omzet + p.payout });
+  context.Pelanggan.set({ ...pl, totalRefund: pl.totalRefund + p.refund });
+  context.Statistik.set({ ...st, payout: st.payout + p.payout, refund: st.refund + p.refund });
 });

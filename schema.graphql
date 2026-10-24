@@ -3,8 +3,11 @@
 enum StatusOrder {
   Open
   Claimed
+  Siap
   Finished
   Expired
+  Sengketa
+  Diputuskan
 }
 
 enum AlasanExpire {
@@ -18,6 +21,12 @@ type Order {
   jenis: Int!
   label: String!
   harga: BigInt!
+  halaman: Int!
+  batasKerja: Int!
+  "Hash dokumen terenkripsi (kosong = mode demo tanpa dokumen)"
+  dokumen: String
+  "Order butuh serah terima QR (kodeHash != 0)"
+  pakaiKode: Boolean!
   teks: String!
   status: StatusOrder! @index
   sesi: Sesi!
@@ -25,7 +34,12 @@ type Order {
   langkahSelesai: Int!
   dibuatPada: BigInt! @index
   diclaimPada: BigInt
+  siapPada: BigInt
   selesaiPada: BigInt
+  "Payout yang terkunci saat Siap"
+  payoutTerkunci: BigInt
+  "true = diserahkan lewat QR / tanpa kode; false = ditutup setelah batas jemput"
+  diserahkan: Boolean
   kerja: Int
   payout: BigInt
   refund: BigInt
@@ -43,6 +57,7 @@ type Toko {
   diclaim: Int!
   selesai: Int!
   gagal: Int!
+  sengketa: Int!
   totalPayout: BigInt!
 }
 
@@ -88,8 +103,10 @@ type TopUp {
 
 type Katalog {
   id: ID!
-  harga: BigInt!
-  batasKerja: Int!
+  hargaDasar: BigInt!
+  hargaPerHalaman: BigInt!
+  batasDasar: Int!
+  batasPerHalaman: Int!
   jumlahLangkah: Int!
   label: String!
 }
@@ -102,6 +119,7 @@ type Statistik {
   order: Int!
   selesai: Int!
   expired: Int!
+  sengketa: Int!
   relayed: Int!
   volume: BigInt!
   payout: BigInt!

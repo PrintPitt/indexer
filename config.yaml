@@ -19,11 +19,15 @@ contracts:
       - event: SessionEnded
       - event: FeeRelaySet
       - event: OrderCreated
+      - event: OrderDetail
       - event: OrderRelayed
       - event: OrderClaimed
       - event: StepCompleted
+      - event: OrderReady
       - event: OrderFinished
       - event: OrderExpired
+      - event: OrderDisputed
+      - event: DisputeResolved
   - name: TestIDRX
     abi_file_path: ./abis/TestIDRX.json
     events:
@@ -32,12 +36,12 @@ chains:
   # Monad testnet lewat HyperSync (https://10143.hypersync.xyz), butuh ENVIO_API_TOKEN.
   # Default = deploy 2026-10-24 (deployments/10143.json di repo contracts); env ENVIO_* menimpa.
   - id: 10143
-    start_block: ${ENVIO_START_BLOCK:-73719650}
+    start_block: ${ENVIO_START_BLOCK:-73733847}
     contracts:
       - name: FotokopiKilat
-        address: "${ENVIO_FK_ADDRESS:-0x346c1fB782847Ce9f672C52dB26E0DBb953a679f}"
+        address: "${ENVIO_FK_ADDRESS:-0xA2a56061f16919a2cFF2a4941db467BDe86B88aa}"
       - name: TestIDRX
-        address: "${ENVIO_TIDRX_ADDRESS:-0x3E890eFBC4089df436589D4c3f5e356afed82322}"
+        address: "${ENVIO_TIDRX_ADDRESS:-0x7C187352Ce1Bf0137aC72b876d0D4e119dBcA8E3}"
   # Anvil lokal: alamat deterministik dari test/uji-anvil.sh di repo backend (deployer kunci #0, nonce 0 dan 1).
   - id: 31337
     start_block: 0

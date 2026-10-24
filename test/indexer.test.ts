@@ -21,7 +21,7 @@ async function jalankanSesi() {
     chains: {
       31337: {
         simulate: [
-          ev(1, { contract: "FotokopiKilat", event: "KatalogSet", params: { jenis: 1n, harga: 5_000n * RP, batasKerja: 30n, langkah: "0x01000000", jumlahLangkah: 1n, label: "FOTOKOPI KTP" } }),
+          ev(1, { contract: "FotokopiKilat", event: "KatalogSet", params: { jenis: 1n, hargaDasar: 5_000n * RP, hargaPerHalaman: 0n, batasDasar: 30n, batasPerHalaman: 0n, langkah: "0x01000000", jumlahLangkah: 1n, label: "FOTOKOPI KTP" } }),
           ev(1, { contract: "FotokopiKilat", event: "ShopRegistered", params: { toko: TOKO_A, nama: "Toko A" } }),
           ev(1, { contract: "FotokopiKilat", event: "ShopRegistered", params: { toko: TOKO_B, nama: "Toko B" } }),
           ev(1, { contract: "FotokopiKilat", event: "FeeRelaySet", params: { fee: 100n * RP } }),
@@ -32,7 +32,7 @@ async function jalankanSesi() {
           ev(4, { contract: "FotokopiKilat", event: "OrderRelayed", params: { id: 1n, relayer: RELAYER, fee: 100n * RP } }),
           ev(5, { contract: "FotokopiKilat", event: "OrderClaimed", params: { id: 1n, toko: TOKO_A, diclaimPada: t0 + 5n } }),
           ev(11, { contract: "FotokopiKilat", event: "StepCompleted", params: { id: 1n, toko: TOKO_A, urutan: 1n, kode: 1n } }),
-          ev(11, { contract: "FotokopiKilat", event: "OrderFinished", params: { id: 1n, toko: TOKO_A, payout: 4_000n * RP, refund: 1_000n * RP, kerja: 6n } }),
+          ev(11, { contract: "FotokopiKilat", event: "OrderFinished", params: { id: 1n, toko: TOKO_A, payout: 4_000n * RP, refund: 1_000n * RP, kerja: 6n, diserahkan: true } }),
           // order 2: tidak ada yang claim -> expire antre (refund penuh)
           ev(12, { contract: "FotokopiKilat", event: "OrderCreated", params: { id: 2n, pelanggan: PENONTON, jenis: 1n, harga: 5_000n * RP, teks: "KTP Sari", dibuatPada: t0 + 12n } }),
           ev(60, { contract: "FotokopiKilat", event: "OrderExpired", params: { id: 2n, refund: 5_000n * RP, alasan: 0n } }),
@@ -53,7 +53,7 @@ describe("FotokopiKilat indexer", () => {
     const ix = await jalankanSesi();
     const o = await ix.Order.getOrThrow("1");
     t.expect(o).toMatchObject({
-      status: "Finished", toko_id: TOKO_A, pelanggan_id: PENONTON, sesi_id: "1", label: "FOTOKOPI KTP",
+      status: "Finished", toko_id: TOKO_A, pelanggan_id: PENONTON, sesi_id: "1", label: "FOTOKOPI KTP", diserahkan: true,
       langkahSelesai: 1, kerja: 6, payout: 400_000n, refund: 100_000n, viaRelayer: true, relayer: RELAYER, feeRelay: 10_000n,
       txBuat: `0x${(4).toString(16).padStart(64, "0")}`,
     });
@@ -95,5 +95,44 @@ describe("FotokopiKilat indexer", () => {
       chains: { 31337: { simulate: [ev(1, { contract: "TestIDRX", event: "Transfer", params: { from: PENONTON, to: TOKO_A, value: 1n } })] } },
     } as never);
     t.expect(await ix.TopUp.getAll()).toHaveLength(0);
+  });
+
+  it("v2: order dokumen berkode → Siap → serah terima; order lain disengketakan lalu diputuskan", async (t) => {
+    const ix = createTestIndexer();
+    const DOK = `0x${"ab".repeat(32)}`, KODE = `0x${"cd".repeat(32)}`, NOL = `0x${"0".repeat(64)}`;
+    await ix.process({
+      chains: {
+        31337: {
+          simulate: [
+            ev(1, { contract: "FotokopiKilat", event: "KatalogSet", params: { jenis: 5n, hargaDasar: 1_000n * RP, hargaPerHalaman: 500n * RP, batasDasar: 20n, batasPerHalaman: 3n, langkah: "0x02000000", jumlahLangkah: 1n, label: "PRINT DOKUMEN" } }),
+            ev(1, { contract: "FotokopiKilat", event: "ShopRegistered", params: { toko: TOKO_A, nama: "Toko A" } }),
+            ev(2, { contract: "FotokopiKilat", event: "SessionStarted", params: { sesiId: 1n, waktu: t0 + 2n } }),
+            // order 1: 6 halaman, dokumen + kode → Siap → diserahkan
+            ev(3, { contract: "FotokopiKilat", event: "OrderCreated", params: { id: 1n, pelanggan: PENONTON, jenis: 5n, harga: 4_000n * RP, teks: "Skripsi", dibuatPada: t0 + 3n } }),
+            ev(3, { contract: "FotokopiKilat", event: "OrderDetail", params: { id: 1n, halaman: 6n, batasKerja: 38n, dokumen: DOK, kodeHash: KODE } }),
+            ev(4, { contract: "FotokopiKilat", event: "OrderClaimed", params: { id: 1n, toko: TOKO_A, diclaimPada: t0 + 4n } }),
+            ev(9, { contract: "FotokopiKilat", event: "OrderReady", params: { id: 1n, toko: TOKO_A, kerja: 5n, payout: 3_473n * RP, siapPada: t0 + 9n } }),
+            ev(80, { contract: "FotokopiKilat", event: "OrderFinished", params: { id: 1n, toko: TOKO_A, payout: 3_473n * RP, refund: 527n * RP, kerja: 5n, diserahkan: true } }),
+            // order 2: Siap lalu dikomplain, operator memberi toko separuh
+            ev(81, { contract: "FotokopiKilat", event: "OrderCreated", params: { id: 2n, pelanggan: PENONTON, jenis: 5n, harga: 2_000n * RP, teks: "Makalah", dibuatPada: t0 + 81n } }),
+            ev(81, { contract: "FotokopiKilat", event: "OrderDetail", params: { id: 2n, halaman: 2n, batasKerja: 26n, dokumen: NOL, kodeHash: KODE } }),
+            ev(82, { contract: "FotokopiKilat", event: "OrderClaimed", params: { id: 2n, toko: TOKO_A, diclaimPada: t0 + 82n } }),
+            ev(90, { contract: "FotokopiKilat", event: "OrderReady", params: { id: 2n, toko: TOKO_A, kerja: 8n, payout: 1_384n * RP, siapPada: t0 + 90n } }),
+            ev(95, { contract: "FotokopiKilat", event: "OrderDisputed", params: { id: 2n } }),
+            ev(120, { contract: "FotokopiKilat", event: "DisputeResolved", params: { id: 2n, toko: TOKO_A, payout: 692n * RP, refund: 1_308n * RP } }),
+          ],
+        },
+      },
+    } as never);
+    t.expect(await ix.Katalog.getOrThrow("5")).toMatchObject({ hargaDasar: 100_000n, hargaPerHalaman: 50_000n, batasDasar: 20, batasPerHalaman: 3 });
+    t.expect(await ix.Order.getOrThrow("1")).toMatchObject({
+      status: "Finished", halaman: 6, batasKerja: 38, dokumen: DOK, pakaiKode: true, siapPada: t0 + 9n,
+      payoutTerkunci: 347_300n, payout: 347_300n, diserahkan: true, kerja: 5,
+    });
+    t.expect(await ix.Order.getOrThrow("2")).toMatchObject({ status: "Diputuskan", dokumen: undefined, pakaiKode: true, payout: 69_200n, refund: 130_800n });
+    t.expect(await ix.Toko.getOrThrow(TOKO_A)).toMatchObject({ selesai: 1, sengketa: 1, totalPayout: 347_300n + 69_200n });
+    t.expect(await ix.OmzetSesi.getOrThrow(`1-${TOKO_A}`)).toMatchObject({ omzet: 347_300n + 69_200n, selesai: 1 });
+    t.expect(await ix.Pelanggan.getOrThrow(PENONTON)).toMatchObject({ nft: 1, totalRefund: 52_700n + 130_800n });
+    t.expect(await ix.Statistik.getOrThrow("global")).toMatchObject({ order: 2, selesai: 1, sengketa: 1 });
   });
 });

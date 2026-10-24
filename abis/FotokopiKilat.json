@@ -18,12 +18,30 @@
         "internalType": "uint32"
       },
       {
+        "name": "batasJemput_",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
         "name": "token_",
         "type": "address",
         "internalType": "contract IERC20"
       }
     ],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "BPS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -34,6 +52,19 @@
         "name": "",
         "type": "uint8",
         "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "MAX_HALAMAN",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint16",
+        "internalType": "uint16"
       }
     ],
     "stateMutability": "view"
@@ -142,6 +173,19 @@
   },
   {
     "type": "function",
+    "name": "batasJemput",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "claim",
     "inputs": [
       {
@@ -184,6 +228,21 @@
         "name": "teks",
         "type": "string",
         "internalType": "string"
+      },
+      {
+        "name": "halaman",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "dokumen",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "kodeHash",
+        "type": "bytes32",
+        "internalType": "bytes32"
       }
     ],
     "outputs": [
@@ -218,6 +277,21 @@
             "name": "teks",
             "type": "string",
             "internalType": "string"
+          },
+          {
+            "name": "halaman",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "dokumen",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "kodeHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
           },
           {
             "name": "deadline",
@@ -462,12 +536,22 @@
             "internalType": "enum FotokopiKilat.Status"
           },
           {
+            "name": "halaman",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
             "name": "dibuatPada",
             "type": "uint40",
             "internalType": "uint40"
           },
           {
             "name": "diclaimPada",
+            "type": "uint40",
+            "internalType": "uint40"
+          },
+          {
+            "name": "siapPada",
             "type": "uint40",
             "internalType": "uint40"
           },
@@ -487,11 +571,50 @@
             "internalType": "uint32"
           },
           {
+            "name": "dokumen",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "kodeHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
             "name": "teks",
             "type": "string",
             "internalType": "string"
           }
         ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "hargaUntuk",
+    "inputs": [
+      {
+        "name": "jenis",
+        "type": "uint8",
+        "internalType": "uint8"
+      },
+      {
+        "name": "halaman",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "harga",
+        "type": "uint96",
+        "internalType": "uint96"
+      },
+      {
+        "name": "batasKerja",
+        "type": "uint32",
+        "internalType": "uint32"
       }
     ],
     "stateMutability": "view"
@@ -545,12 +668,22 @@
     ],
     "outputs": [
       {
-        "name": "harga",
+        "name": "hargaDasar",
         "type": "uint96",
         "internalType": "uint96"
       },
       {
-        "name": "batasKerja",
+        "name": "hargaPerHalaman",
+        "type": "uint96",
+        "internalType": "uint96"
+      },
+      {
+        "name": "batasDasar",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "batasPerHalaman",
         "type": "uint32",
         "internalType": "uint32"
       },
@@ -576,6 +709,19 @@
       }
     ],
     "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "komplain",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -685,90 +831,6 @@
   },
   {
     "type": "function",
-    "name": "order",
-    "inputs": [
-      {
-        "name": "id",
-        "type": "uint64",
-        "internalType": "uint64"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "pelanggan",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "harga",
-        "type": "uint96",
-        "internalType": "uint96"
-      },
-      {
-        "name": "toko",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "jenis",
-        "type": "uint8",
-        "internalType": "uint8"
-      },
-      {
-        "name": "langkah",
-        "type": "bytes4",
-        "internalType": "bytes4"
-      },
-      {
-        "name": "jumlahLangkah",
-        "type": "uint8",
-        "internalType": "uint8"
-      },
-      {
-        "name": "langkahSelesai",
-        "type": "uint8",
-        "internalType": "uint8"
-      },
-      {
-        "name": "status",
-        "type": "uint8",
-        "internalType": "enum FotokopiKilat.Status"
-      },
-      {
-        "name": "dibuatPada",
-        "type": "uint40",
-        "internalType": "uint40"
-      },
-      {
-        "name": "diclaimPada",
-        "type": "uint40",
-        "internalType": "uint40"
-      },
-      {
-        "name": "batasKerja",
-        "type": "uint32",
-        "internalType": "uint32"
-      },
-      {
-        "name": "sesi",
-        "type": "uint32",
-        "internalType": "uint32"
-      },
-      {
-        "name": "kerja",
-        "type": "uint32",
-        "internalType": "uint32"
-      },
-      {
-        "name": "teks",
-        "type": "string",
-        "internalType": "string"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "ownerOf",
     "inputs": [
       {
@@ -828,6 +890,24 @@
       }
     ],
     "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "putuskan",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "bagianToko",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -900,6 +980,24 @@
   },
   {
     "type": "function",
+    "name": "serahkan",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "rahasia",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "sesiAktif",
     "inputs": [],
     "outputs": [
@@ -965,12 +1063,22 @@
         "internalType": "uint8"
       },
       {
-        "name": "harga",
+        "name": "hargaDasar",
         "type": "uint96",
         "internalType": "uint96"
       },
       {
-        "name": "batasKerja",
+        "name": "hargaPerHalaman",
+        "type": "uint96",
+        "internalType": "uint96"
+      },
+      {
+        "name": "batasDasar",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "batasPerHalaman",
         "type": "uint32",
         "internalType": "uint32"
       },
@@ -1163,6 +1271,37 @@
   },
   {
     "type": "event",
+    "name": "DisputeResolved",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "toko",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "payout",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "refund",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "EIP712DomainChanged",
     "inputs": [],
     "anonymous": false
@@ -1191,13 +1330,25 @@
         "internalType": "uint8"
       },
       {
-        "name": "harga",
+        "name": "hargaDasar",
         "type": "uint96",
         "indexed": false,
         "internalType": "uint96"
       },
       {
-        "name": "batasKerja",
+        "name": "hargaPerHalaman",
+        "type": "uint96",
+        "indexed": false,
+        "internalType": "uint96"
+      },
+      {
+        "name": "batasDasar",
+        "type": "uint32",
+        "indexed": false,
+        "internalType": "uint32"
+      },
+      {
+        "name": "batasPerHalaman",
         "type": "uint32",
         "indexed": false,
         "internalType": "uint32"
@@ -1293,6 +1444,56 @@
   },
   {
     "type": "event",
+    "name": "OrderDetail",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "halaman",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      },
+      {
+        "name": "batasKerja",
+        "type": "uint32",
+        "indexed": false,
+        "internalType": "uint32"
+      },
+      {
+        "name": "dokumen",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "kodeHash",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OrderDisputed",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "OrderExpired",
     "inputs": [
       {
@@ -1349,6 +1550,49 @@
         "type": "uint32",
         "indexed": false,
         "internalType": "uint32"
+      },
+      {
+        "name": "diserahkan",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OrderReady",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "toko",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "kerja",
+        "type": "uint32",
+        "indexed": false,
+        "internalType": "uint32"
+      },
+      {
+        "name": "payout",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "siapPada",
+        "type": "uint40",
+        "indexed": false,
+        "internalType": "uint40"
       }
     ],
     "anonymous": false
@@ -1498,12 +1742,27 @@
   },
   {
     "type": "error",
+    "name": "BadCode",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "BadKind",
     "inputs": []
   },
   {
     "type": "error",
+    "name": "BadPages",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "BadRecipe",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BadShare",
     "inputs": []
   },
   {
@@ -1673,12 +1932,27 @@
   },
   {
     "type": "error",
+    "name": "NotCustomer",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotDisputed",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "NotExpired",
     "inputs": []
   },
   {
     "type": "error",
     "name": "NotOperator",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotReady",
     "inputs": []
   },
   {
@@ -1747,6 +2021,11 @@
         "internalType": "string"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "TooLate",
+    "inputs": []
   },
   {
     "type": "error",

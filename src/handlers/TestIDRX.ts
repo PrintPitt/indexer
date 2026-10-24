@@ -13,7 +13,7 @@ indexer.onEvent({ contract: "TestIDRX", event: "Transfer" }, async ({ event, con
   const pl = await context.Pelanggan.getOrCreate({ id: to, jumlahOrder: 0, totalBayar: 0n, totalRefund: 0n, nft: 0, totalTopUp: 0n });
   context.Pelanggan.set({ ...pl, totalTopUp: pl.totalTopUp + value });
   const st = await context.Statistik.getOrCreate({
-    id: "global", sesiAktif: 0, feeRelay: 0n, order: 0, selesai: 0, expired: 0, relayed: 0,
+    id: "global", sesiAktif: 0, feeRelay: 0n, order: 0, selesai: 0, expired: 0, sengketa: 0, relayed: 0,
     volume: 0n, payout: 0n, refund: 0n, topUp: 0n,
   });
   context.Statistik.set({ ...st, topUp: st.topUp + value });
