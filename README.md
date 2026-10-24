@@ -1,7 +1,6 @@
 # PrintPitt · indexer
 
 Envio HyperIndex 3.14 indexer for the **Fotokopi Kilat** game contracts (`FotokopiKilat` + `TestIDRX`) on Monad.
-Ticket BLZ-20; the decision to use an indexer is D-16 in the Decision Log of [`PrintPitt/vault`](https://github.com/PrintPitt/vault).
 
 - [What this is, in plain words](#what-this-is-in-plain-words)
 - [Why it exists](#why-it-exists)
@@ -632,4 +631,3 @@ The indexer has **not** been deployed to Envio Cloud. Outline of the planned ste
 | [`PrintPitt/backend`](https://github.com/PrintPitt/backend) | Node service: faucet, keeper (auto expiry), order bot, status endpoint; `test/uji-anvil.sh` for the local anvil setup. |
 | [`PrintPitt/frontend`](https://github.com/PrintPitt/frontend) | The game website. Reads live events over WebSocket and snapshots, history and stats from this indexer's GraphQL API. |
 | [`PrintPitt/indexer`](https://github.com/PrintPitt/indexer) | This repo. |
-| [`PrintPitt/vault`](https://github.com/PrintPitt/vault) | Project documentation (Obsidian vault): architecture, decision log (D-16), backlog (BLZ-20). |
