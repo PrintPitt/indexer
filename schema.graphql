@@ -57,6 +57,8 @@ type Order {
 type Toko {
   id: ID!
   nama: String!
+  "false bila dinonaktifkan operator (tidak bisa claim)"
+  aktif: Boolean!
   orders: [Order!]! @derivedFrom(field: "toko")
   diclaim: Int!
   selesai: Int!

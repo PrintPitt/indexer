@@ -159,5 +159,21 @@ describe("FotokopiKilat indexer", () => {
     t.expect(await ix.Toko.getOrThrow(TOKO_A)).toMatchObject({ proSampai: t0 + 9n + 2_592_000n, totalPayout: 436_500n });
     t.expect(await ix.Statistik.getOrThrow("global")).toMatchObject({ platformFeeBps: 300, pendapatanFee: 13_500n, pendapatanPro: 5_000_000n });
   });
+
+  it("v2.3: toko daftar sendiri, ganti nama, dinonaktifkan", async (t) => {
+    const ix = createTestIndexer();
+    await ix.process({
+      chains: {
+        31337: {
+          simulate: [
+            ev(1, { contract: "FotokopiKilat", event: "ShopRegistered", params: { toko: TOKO_B, nama: "Fotokopi Barokah" } }),
+            ev(2, { contract: "FotokopiKilat", event: "ShopRenamed", params: { toko: TOKO_B, nama: "Barokah Copy" } }),
+            ev(3, { contract: "FotokopiKilat", event: "ShopStatusSet", params: { toko: TOKO_B, aktif: false } }),
+          ],
+        },
+      },
+    } as never);
+    t.expect(await ix.Toko.getOrThrow(TOKO_B)).toMatchObject({ nama: "Barokah Copy", aktif: false });
+  });
 });
 

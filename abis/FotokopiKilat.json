@@ -141,19 +141,6 @@
   },
   {
     "type": "function",
-    "name": "MAX_TOKO",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "PERIODE_PRO",
     "inputs": [],
     "outputs": [
@@ -440,6 +427,19 @@
       }
     ],
     "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "daftarkanToko",
+    "inputs": [
+      {
+        "name": "nama",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -1268,6 +1268,24 @@
   },
   {
     "type": "function",
+    "name": "setTokoAktif",
+    "inputs": [
+      {
+        "name": "alamat",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "aktif",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "startSession",
     "inputs": [],
     "outputs": [],
@@ -1354,6 +1372,11 @@
         "internalType": "bool"
       },
       {
+        "name": "aktif",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
         "name": "orderAktif",
         "type": "uint64",
         "internalType": "uint64"
@@ -1410,6 +1433,19 @@
         "name": "id",
         "type": "uint64",
         "internalType": "uint64"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "ubahNamaToko",
+    "inputs": [
+      {
+        "name": "nama",
+        "type": "string",
+        "internalType": "string"
       }
     ],
     "outputs": [],
@@ -1952,6 +1988,44 @@
   },
   {
     "type": "event",
+    "name": "ShopRenamed",
+    "inputs": [
+      {
+        "name": "toko",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "nama",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ShopStatusSet",
+    "inputs": [
+      {
+        "name": "toko",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "aktif",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "StepCompleted",
     "inputs": [
       {
@@ -2279,6 +2353,11 @@
   },
   {
     "type": "error",
+    "name": "ShopInactive",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "SignatureExpired",
     "inputs": []
   },
@@ -2296,11 +2375,6 @@
   {
     "type": "error",
     "name": "TooLate",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "TooManyShops",
     "inputs": []
   },
   {

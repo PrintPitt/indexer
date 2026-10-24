@@ -32,7 +32,18 @@ indexer.onEvent({ contract: "FotokopiKilat", event: "KatalogSet" }, async ({ eve
 });
 
 indexer.onEvent({ contract: "FotokopiKilat", event: "ShopRegistered" }, async ({ event, context }) => {
-  context.Toko.set({ id: event.params.toko, nama: event.params.nama, diclaim: 0, selesai: 0, gagal: 0, sengketa: 0, totalPayout: NOL, proSampai: undefined });
+  context.Toko.set({ id: event.params.toko, nama: event.params.nama, aktif: true, diclaim: 0, selesai: 0, gagal: 0, sengketa: 0, totalPayout: NOL, proSampai: undefined });
+});
+
+// v2.3: toko mendaftar sendiri (ShopRegistered di atas), ganti nama, dan bisa dinonaktifkan operator.
+indexer.onEvent({ contract: "FotokopiKilat", event: "ShopRenamed" }, async ({ event, context }) => {
+  const t = await context.Toko.get(event.params.toko);
+  if (t) context.Toko.set({ ...t, nama: event.params.nama });
+});
+
+indexer.onEvent({ contract: "FotokopiKilat", event: "ShopStatusSet" }, async ({ event, context }) => {
+  const t = await context.Toko.get(event.params.toko);
+  if (t) context.Toko.set({ ...t, aktif: event.params.aktif });
 });
 
 indexer.onEvent({ contract: "FotokopiKilat", event: "SessionStarted" }, async ({ event, context }) => {
