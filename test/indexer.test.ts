@@ -135,4 +135,29 @@ describe("FotokopiKilat indexer", () => {
     t.expect(await ix.Pelanggan.getOrThrow(PENONTON)).toMatchObject({ nft: 1, totalRefund: 52_700n + 130_800n });
     t.expect(await ix.Statistik.getOrThrow("global")).toMatchObject({ order: 2, selesai: 1, sengketa: 1 });
   });
+
+  it("v2.1: fee platform dan langganan Toko Pro tercatat sebagai pendapatan", async (t) => {
+    const ix = createTestIndexer();
+    const TREASURY = "0x1D3a9498F7e32661f3729677d0D773b40F70EAF4";
+    await ix.process({
+      chains: {
+        31337: {
+          simulate: [
+            ev(1, { contract: "FotokopiKilat", event: "ShopRegistered", params: { toko: TOKO_A, nama: "Toko A" } }),
+            ev(1, { contract: "FotokopiKilat", event: "PlatformSet", params: { feeBps: 300n, treasury: TREASURY, hargaPro: 50_000n * RP } }),
+            ev(2, { contract: "FotokopiKilat", event: "SessionStarted", params: { sesiId: 1n, waktu: t0 + 2n } }),
+            ev(3, { contract: "FotokopiKilat", event: "OrderCreated", params: { id: 1n, pelanggan: PENONTON, jenis: 1n, harga: 5_000n * RP, teks: "KTP", dibuatPada: t0 + 3n } }),
+            ev(4, { contract: "FotokopiKilat", event: "OrderClaimed", params: { id: 1n, toko: TOKO_A, diclaimPada: t0 + 4n } }),
+            ev(8, { contract: "FotokopiKilat", event: "OrderFinished", params: { id: 1n, toko: TOKO_A, payout: 4_365n * RP, refund: 500n * RP, kerja: 3n, diserahkan: true } }),
+            ev(8, { contract: "FotokopiKilat", event: "PlatformFeeTaken", params: { id: 1n, fee: 135n * RP } }),
+            ev(9, { contract: "FotokopiKilat", event: "ProSubscribed", params: { toko: TOKO_A, sampai: t0 + 9n + 2_592_000n, bayar: 50_000n * RP } }),
+          ],
+        },
+      },
+    } as never);
+    t.expect(await ix.Order.getOrThrow("1")).toMatchObject({ payout: 436_500n, feePlatform: 13_500n });
+    t.expect(await ix.Toko.getOrThrow(TOKO_A)).toMatchObject({ proSampai: t0 + 9n + 2_592_000n, totalPayout: 436_500n });
+    t.expect(await ix.Statistik.getOrThrow("global")).toMatchObject({ platformFeeBps: 300, pendapatanFee: 13_500n, pendapatanPro: 5_000_000n });
+  });
 });
+

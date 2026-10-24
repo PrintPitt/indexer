@@ -10,7 +10,7 @@ type Ctx = EvmOnEventContext;
 const statistik = (context: Ctx): Promise<Statistik> =>
   context.Statistik.getOrCreate({
     id: "global", sesiAktif: 0, feeRelay: NOL, order: 0, selesai: 0, expired: 0, sengketa: 0, relayed: 0,
-    volume: NOL, payout: NOL, refund: NOL, topUp: NOL,
+    volume: NOL, payout: NOL, refund: NOL, topUp: NOL, platformFeeBps: 0, pendapatanFee: NOL, pendapatanPro: NOL,
   });
 
 const pelanggan = (context: Ctx, id: string): Promise<Pelanggan> =>
@@ -32,7 +32,7 @@ indexer.onEvent({ contract: "FotokopiKilat", event: "KatalogSet" }, async ({ eve
 });
 
 indexer.onEvent({ contract: "FotokopiKilat", event: "ShopRegistered" }, async ({ event, context }) => {
-  context.Toko.set({ id: event.params.toko, nama: event.params.nama, diclaim: 0, selesai: 0, gagal: 0, sengketa: 0, totalPayout: NOL });
+  context.Toko.set({ id: event.params.toko, nama: event.params.nama, diclaim: 0, selesai: 0, gagal: 0, sengketa: 0, totalPayout: NOL, proSampai: undefined });
 });
 
 indexer.onEvent({ contract: "FotokopiKilat", event: "SessionStarted" }, async ({ event, context }) => {
@@ -64,7 +64,7 @@ indexer.onEvent({ contract: "FotokopiKilat", event: "OrderCreated" }, async ({ e
     halaman: 1, batasKerja: 0, dokumen: undefined, pakaiKode: false, // diisi OrderDetail (tx yang sama)
     teks: p.teks, status: "Open", sesi_id: sesiId, toko_id: undefined, langkahSelesai: 0, dibuatPada: p.dibuatPada,
     diclaimPada: undefined, siapPada: undefined, selesaiPada: undefined, payoutTerkunci: undefined, diserahkan: undefined,
-    kerja: undefined, payout: undefined, refund: undefined,
+    kerja: undefined, payout: undefined, feePlatform: undefined, refund: undefined,
     alasanExpire: undefined, viaRelayer: false, relayer: undefined, feeRelay: undefined, txBuat: event.transaction.hash,
   });
   context.Pelanggan.set({ ...pl, jumlahOrder: pl.jumlahOrder + 1, totalBayar: pl.totalBayar + p.harga });
@@ -182,3 +182,27 @@ indexer.onEvent({ contract: "FotokopiKilat", event: "DisputeResolved" }, async (
   context.Pelanggan.set({ ...pl, totalRefund: pl.totalRefund + p.refund });
   context.Statistik.set({ ...st, payout: st.payout + p.payout, refund: st.refund + p.refund });
 });
+
+// ---------------------------------------------------------------- revenue v2.1
+
+indexer.onEvent({ contract: "FotokopiKilat", event: "PlatformSet" }, async ({ event, context }) => {
+  context.Statistik.set({ ...(await statistik(context)), platformFeeBps: Number(event.params.feeBps) });
+});
+
+// Dipancarkan setelah OrderFinished / DisputeResolved di tx yang sama.
+indexer.onEvent({ contract: "FotokopiKilat", event: "PlatformFeeTaken" }, async ({ event, context }) => {
+  const p = event.params;
+  const o = await order(context, p.id);
+  if (o) context.Order.set({ ...o, feePlatform: p.fee });
+  const st = await statistik(context);
+  context.Statistik.set({ ...st, pendapatanFee: st.pendapatanFee + p.fee });
+});
+
+indexer.onEvent({ contract: "FotokopiKilat", event: "ProSubscribed" }, async ({ event, context }) => {
+  const p = event.params;
+  const t = await context.Toko.get(p.toko);
+  if (t) context.Toko.set({ ...t, proSampai: p.sampai });
+  const st = await statistik(context);
+  context.Statistik.set({ ...st, pendapatanPro: st.pendapatanPro + p.bayar });
+});
+

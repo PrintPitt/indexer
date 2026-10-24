@@ -14,7 +14,7 @@ indexer.onEvent({ contract: "TestIDRX", event: "Transfer" }, async ({ event, con
   context.Pelanggan.set({ ...pl, totalTopUp: pl.totalTopUp + value });
   const st = await context.Statistik.getOrCreate({
     id: "global", sesiAktif: 0, feeRelay: 0n, order: 0, selesai: 0, expired: 0, sengketa: 0, relayed: 0,
-    volume: 0n, payout: 0n, refund: 0n, topUp: 0n,
+    volume: 0n, payout: 0n, refund: 0n, topUp: 0n, platformFeeBps: 0, pendapatanFee: 0n, pendapatanPro: 0n,
   });
   context.Statistik.set({ ...st, topUp: st.topUp + value });
 });

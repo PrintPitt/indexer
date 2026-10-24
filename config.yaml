@@ -18,6 +18,9 @@ contracts:
       - event: SessionStarted
       - event: SessionEnded
       - event: FeeRelaySet
+      - event: PlatformSet
+      - event: PlatformFeeTaken
+      - event: ProSubscribed
       - event: OrderCreated
       - event: OrderDetail
       - event: OrderRelayed
@@ -36,12 +39,12 @@ chains:
   # Monad testnet lewat HyperSync (https://10143.hypersync.xyz), butuh ENVIO_API_TOKEN.
   # Default = deploy 2026-10-24 (deployments/10143.json di repo contracts); env ENVIO_* menimpa.
   - id: 10143
-    start_block: ${ENVIO_START_BLOCK:-73733847}
+    start_block: ${ENVIO_START_BLOCK:-73738764}
     contracts:
       - name: FotokopiKilat
-        address: "${ENVIO_FK_ADDRESS:-0xA2a56061f16919a2cFF2a4941db467BDe86B88aa}"
+        address: "${ENVIO_FK_ADDRESS:-0x7aa3616045f98AE7CFEfD495aFEDbfCDE38B3181}"
       - name: TestIDRX
-        address: "${ENVIO_TIDRX_ADDRESS:-0x7C187352Ce1Bf0137aC72b876d0D4e119dBcA8E3}"
+        address: "${ENVIO_TIDRX_ADDRESS:-0xa5A96e268D6d75473B7b15c4BAFCDDCDC8223589}"
   # Anvil lokal: alamat deterministik dari test/uji-anvil.sh di repo backend (deployer kunci #0, nonce 0 dan 1).
   - id: 31337
     start_block: 0

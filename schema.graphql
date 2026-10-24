@@ -41,7 +41,9 @@ type Order {
   "true = diserahkan lewat QR / tanpa kode; false = ditutup setelah batas jemput"
   diserahkan: Boolean
   kerja: Int
+  "Payout bersih ke toko (setelah fee platform)"
   payout: BigInt
+  feePlatform: BigInt
   refund: BigInt
   alasanExpire: AlasanExpire
   viaRelayer: Boolean!
@@ -59,6 +61,8 @@ type Toko {
   gagal: Int!
   sengketa: Int!
   totalPayout: BigInt!
+  "Toko Pro aktif sampai (detik); null = belum pernah langganan"
+  proSampai: BigInt
 }
 
 type Sesi {
@@ -125,4 +129,7 @@ type Statistik {
   payout: BigInt!
   refund: BigInt!
   topUp: BigInt!
+  platformFeeBps: Int!
+  pendapatanFee: BigInt!
+  pendapatanPro: BigInt!
 }
